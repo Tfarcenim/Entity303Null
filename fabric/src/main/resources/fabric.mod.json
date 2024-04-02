@@ -16,7 +16,7 @@
     "environment": "*",
     "entrypoints": {
         "main": [
-            "com.example.examplemod.ExampleMod"
+            "tfar.entity303null.ExampleMod"
         ]
     },
     "mixins": [

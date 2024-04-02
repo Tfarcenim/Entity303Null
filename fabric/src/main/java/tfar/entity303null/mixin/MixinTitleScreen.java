@@ -1,6 +1,6 @@
-package com.example.examplemod.mixin;
+package tfar.entity303null.mixin;
 
-import com.example.examplemod.CommonClass;
+import tfar.entity303null.Entity303Null;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,7 +14,7 @@ public class MixinTitleScreen {
     @Inject(at = @At("HEAD"), method = "init()V")
     private void init(CallbackInfo info) {
         
-        CommonClass.LOG.info("This line is printed by an example mod mixin from Fabric!");
-        CommonClass.LOG.info("MC Version: {}", Minecraft.getInstance().getVersionType());
+        Entity303Null.LOG.info("This line is printed by an example mod mixin from Fabric!");
+        Entity303Null.LOG.info("MC Version: {}", Minecraft.getInstance().getVersionType());
     }
 }

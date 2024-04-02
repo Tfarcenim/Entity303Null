@@ -1,19 +1,19 @@
-package com.example.examplemod;
+package tfar.entity303null;
 
 import net.minecraftforge.fml.common.Mod;
 
-@Mod(CommonClass.MOD_ID)
-public class ExampleMod {
+@Mod(Entity303Null.MOD_ID)
+public class Entity303NullForge {
     
-    public ExampleMod() {
+    public Entity303NullForge() {
     
         // This method is invoked by the Forge mod loader when it is ready
         // to load your mod. You can access Forge and Common code in this
         // project.
     
         // Use Forge to bootstrap the Common mod.
-        CommonClass.LOG.info("Hello Forge world!");
-        CommonClass.init();
+        Entity303Null.LOG.info("Hello Forge world!");
+        Entity303Null.init();
         
     }
 }

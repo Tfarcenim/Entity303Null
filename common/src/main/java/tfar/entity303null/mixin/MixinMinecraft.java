@@ -1,6 +1,6 @@
-package com.example.examplemod.mixin;
+package tfar.entity303null.mixin;
 
-import com.example.examplemod.CommonClass;
+import tfar.entity303null.Entity303Null;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,7 +13,7 @@ public class MixinMinecraft {
     @Inject(at = @At("TAIL"), method = "<init>")
     private void init(CallbackInfo info) {
         
-        CommonClass.LOG.info("This line is printed by an example mod common mixin!");
-        CommonClass.LOG.info("MC Version: {}", Minecraft.getInstance().getVersionType());
+        Entity303Null.LOG.info("This line is printed by an example mod common mixin!");
+        Entity303Null.LOG.info("MC Version: {}", Minecraft.getInstance().getVersionType());
     }
 }
