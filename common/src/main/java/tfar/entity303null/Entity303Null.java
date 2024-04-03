@@ -14,5 +14,8 @@ public class Entity303Null {
     public static final String MOD_ID = "entity303null";
     public static final String MOD_NAME = "Entity303Null";
     public static final Logger LOG = LoggerFactory.getLogger(MOD_NAME);
+
+    public static void init() {
+
     }
 }
