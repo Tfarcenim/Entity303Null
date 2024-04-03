@@ -26,6 +26,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Objective;
 import net.minecraft.world.scores.Score;
 import net.minecraft.world.scores.Scoreboard;
+import tfar.entity303null.client.layers.Entity_303EyesLayer;
 import tfar.entity303null.entity.Entity_303;
 
 import java.util.Objects;
@@ -43,6 +44,7 @@ public class Entity_303Renderer extends LivingEntityRenderer<Entity_303, PlayerM
         //this.addLayer(new ParrotOnShoulderLayer<>(this, context.getModelSet()));
         this.addLayer(new SpinAttackEffectLayer<>(this, context.getModelSet()));
         this.addLayer(new BeeStingerLayer<>(this));
+        addLayer(new Entity_303EyesLayer<>(this));
     }
 
     @Override
