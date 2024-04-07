@@ -2,13 +2,16 @@ package tfar.entity303null;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.RegisterEvent;
-import org.stringtemplate.v4.debug.AddAttributeEvent;
 import tfar.entity303null.client.Entity303NullClientForge;
 import tfar.entity303null.entity.Entity_303;
 import tfar.entity303null.init.ModEntities;
@@ -28,10 +31,18 @@ public class Entity303NullForge {
             bus.addListener(Entity303NullClientForge::registerRenderers);
         }
 
+        MinecraftForge.EVENT_BUS.addListener(this::playerTick);
+
         // Use Forge to bootstrap the Common mod.
-        Entity303Null.LOG.info("Hello Forge world!");
+       // Entity303Null.LOG.info("Hello Forge world!");
         Entity303Null.init();
         
+    }
+
+    private void playerTick(TickEvent.PlayerTickEvent event) {
+        if (event.player instanceof ServerPlayer player && player.level.dimension() == Level.OVERWORLD) {
+            Entity303Null.playerTick(player);
+        }
     }
 
 
