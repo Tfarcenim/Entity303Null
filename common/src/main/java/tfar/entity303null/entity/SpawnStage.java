@@ -14,7 +14,7 @@ public enum SpawnStage {
         long days = level.getGameTime() / 24000;
         SpawnStage start = null;
         for (SpawnStage spawnStage : SpawnStage.values()) {
-            if (days <= spawnStage.day) {
+            if (days < spawnStage.day) {
                 break;
             }
             start = spawnStage;

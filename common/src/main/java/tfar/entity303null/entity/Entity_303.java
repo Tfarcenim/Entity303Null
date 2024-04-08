@@ -1,6 +1,9 @@
 package tfar.entity303null.entity;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -10,16 +13,21 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import tfar.entity303null.Entity303Null;
 import tfar.entity303null.entity.goals.LookAtPlayerGoal;
 import tfar.entity303null.entity.goals.LookforPlayerGoal;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Entity_303 extends PathfinderMob implements CanLookAt {
     public Entity_303(EntityType<? extends PathfinderMob> $$0, Level level) {
         super($$0, level);
-        spawnStage = SpawnStage.getStage(level);
     }
 
 
@@ -41,11 +49,11 @@ public class Entity_303 extends PathfinderMob implements CanLookAt {
     @Override
     public boolean isLookingAtMe(Player pPlayer) {
         Vec3 vec3 = pPlayer.getViewVector(1.0F).normalize();
-            Vec3 vec31 = new Vec3(this.getX() - pPlayer.getX(), this.getEyeY() - pPlayer.getEyeY(), this.getZ() - pPlayer.getZ());
-            double d0 = vec31.length();
-            vec31 = vec31.normalize();
-            double d1 = vec3.dot(vec31);
-            return d1 > 1.0D - 0.025D / d0 && pPlayer.hasLineOfSight(this);
+        Vec3 vec31 = new Vec3(this.getX() - pPlayer.getX(), this.getEyeY() - pPlayer.getEyeY(), this.getZ() - pPlayer.getZ());
+        double d0 = vec31.length();
+        vec31 = vec31.normalize();
+        double d1 = vec3.dot(vec31);
+        return d1 > 1.0D - 0.025D / d0 && pPlayer.hasLineOfSight(this);
     }
 
 
@@ -78,30 +86,80 @@ public class Entity_303 extends PathfinderMob implements CanLookAt {
     public void tick() {
         super.tick();
         age++;
-        if (age>= lifespan) {
-            discard();
+        if (age >= lifespan) {
+            despawn();
         }
         if (staredAt) {
             ticksLookedAt++;
         }
         if (ticksLookedAt >= 10) {
+            despawn();
+        }
+    }
+
+    void despawn() {
+        spawnStage = SpawnStage.two;
+        if (!level.isClientSide) {
+            switch (spawnStage) {
+
+                case one -> {
+                }
+                case two -> {
+                    if (random.nextInt(1) == 0) {
+                        placeSign();
+                    }
+                }
+                case three -> {
+                }
+            }
             discard();
         }
+    }
+
+    ///note, most messages can only be 10 characters per line
+    public static final List<String[]> messages = List.of(
+            new String[]{"I'm always",
+                    "watching"},
+            new String[]{"I know your","secrets"},
+            new String[]{"I'm closer","than you","think"},
+            new String[]{"I'm behind","every corner"}
+    );
+
+    void placeSign() {
+        BlockPos pos = blockPosition();
+        if (!level.isOutsideBuildHeight(pos)) {
+            level.setBlock(pos, Blocks.BIRCH_SIGN.defaultBlockState(), 3);
+            String[] message = messages.get(random.nextInt(messages.size()));
+            BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof SignBlockEntity signBlockEntity) {
+                for (int i = 0; i < message.length;i++) {
+                    signBlockEntity.setMessage(i, Component.literal(message[i]));
+                }
+                signBlockEntity.setChanged();
+            }
+            level.setBlock(pos.relative(Direction.NORTH), Blocks.REDSTONE_TORCH.defaultBlockState(), 3);
+        }
+    }
+
+    public void setSpawnStage(SpawnStage spawnStage) {
+        this.spawnStage = spawnStage;
     }
 
     @Override
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
-        tag.putLong("age",age);
+        tag.putLong("age", age);
+        tag.putInt("stage", spawnStage.ordinal());
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         age = tag.getLong("age");
+        spawnStage = SpawnStage.values()[tag.getInt("stage")];
     }
 
     public ResourceLocation getSkinTextureLocation() {
-        return new ResourceLocation(Entity303Null.MOD_ID,"textures/entity/entity_303.png");
+        return new ResourceLocation(Entity303Null.MOD_ID, "textures/entity/entity_303.png");
     }
 }
