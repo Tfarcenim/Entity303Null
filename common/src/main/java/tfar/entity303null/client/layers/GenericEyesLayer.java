@@ -6,17 +6,19 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.EyesLayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
-import tfar.entity303null.Entity303Null;
 
-public class Entity_303EyesLayer<T extends LivingEntity, M extends PlayerModel<T>> extends EyesLayer<T, M> {
+public class GenericEyesLayer<T extends LivingEntity, M extends PlayerModel<T>> extends EyesLayer<T, M> {
 
-    private static final RenderType ENTITY_303_EYES = RenderType.eyes(new ResourceLocation(Entity303Null.MOD_ID,"textures/entity/entity_303_eyes.png"));
-    public Entity_303EyesLayer(RenderLayerParent<T,M> $$0) {
+    private final RenderType eyes;
+    public GenericEyesLayer(RenderLayerParent<T,M> $$0, ResourceLocation base) {
         super($$0);
+        String s = base.getPath();
+        String s1 = s.substring(0,s.length() - ".png".length());
+        eyes = RenderType.eyes(new ResourceLocation(base.getNamespace(),s1+"_eyes.png"));
     }
 
     @Override
     public RenderType renderType() {
-        return ENTITY_303_EYES;
+        return eyes;
     }
 }

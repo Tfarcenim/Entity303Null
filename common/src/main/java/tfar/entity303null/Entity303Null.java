@@ -5,12 +5,14 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tfar.entity303null.entity.Entity_303;
+import tfar.entity303null.entity.Null;
 import tfar.entity303null.entity.SpawnStage;
 import tfar.entity303null.init.ModEntities;
 
@@ -28,77 +30,122 @@ public class Entity303Null {
 
     }
 
+    //entity_303 configurations
+    static int entity_303_cooldown;
     public static int ENTITY_303_LIFESPAN = 1200;
-    public static int SPAWN_ATTEMPT_FREQUENCY = 20;
+    public static int ENTITY_303_SPAWN_ATTEMPT_FREQUENCY = 20;
+    public static int ENTITY_303_SPAWN_COOLDOWN = 1200;
+    public static int ENTITY_303_MIN_SPAWN_DISTANCE = 64;
+    public static int ENTITY_303_MIN_SPAWN_DISTANCE_STAGE_TWO = 48;
+    public static int ENTITY_303_MAX_SPAWN_DISTANCE_STAGE_ONE = 96;
+    //null configurations
+    static int null_cooldown;
 
-    public static int SPAWN_COOLDOWN = 1200;
-    static int cooldown;
-    public static int MIN_SPAWN_DISTANCE = 64;
-    public static int MIN_SPAWN_DISTANCE_STAGE_TWO = 48;
+    public static int NULL_LIFESPAN = 1200;
+    public static int NULL_SPAWN_ATTEMPT_FREQUENCY = 20;
+    public static int NULL_SPAWN_COOLDOWN = 6000;
+    public static int NULL_MIN_SPAWN_DISTANCE = 64;
+    public static int NULL_MAX_SPAWN_DISTANCE = 96;
 
-    public static int MAX_SPAWN_DISTANCE = 96;
+    public static int NULL_MIN_PLAYER_DISTANCE = 32;
+
     public static void playerTick(ServerPlayer player) {
+        tickEntity_303Spawn(player);
+        tickNullSpawn(player);
+    }
+
+    public static void tickEntity_303Spawn(ServerPlayer player) {
         ServerLevel serverLevel = player.getLevel();
-        if (cooldown > 0) {
-            cooldown--;
+        if (entity_303_cooldown > 0) {
+            entity_303_cooldown--;
         }
 
         SpawnStage spawnStage = SpawnStage.getStage(serverLevel);
 
         switch (spawnStage) {
             case one -> {
-                if (cooldown <= 0 && serverLevel.getGameTime() % SPAWN_ATTEMPT_FREQUENCY == 0 && !serverLevel.isDay()) {
+                if (entity_303_cooldown <= 0 && serverLevel.getGameTime() % ENTITY_303_SPAWN_ATTEMPT_FREQUENCY == 0 && !serverLevel.isDay()) {
                     RandomSource randomSource = serverLevel.random;
                     double angle = 360 * randomSource.nextDouble();
-                    double distance = MIN_SPAWN_DISTANCE + (MAX_SPAWN_DISTANCE - MIN_SPAWN_DISTANCE) * randomSource.nextDouble();
+                    double distance = ENTITY_303_MIN_SPAWN_DISTANCE + (ENTITY_303_MAX_SPAWN_DISTANCE_STAGE_ONE - ENTITY_303_MIN_SPAWN_DISTANCE) * randomSource.nextDouble();
                     Vec3 playerPos = player.position();
-                    Vec2 attempt = addPolar(playerPos,distance,angle);
+                    Vec2 attempt = addPolar(playerPos, distance, angle);
                     int height = serverLevel.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, (int) attempt.x, (int) attempt.y);
-                    BlockPos spawnPos = new BlockPos(attempt.x,height,attempt.y);
-                    Entity_303 entity303 = (Entity_303) ModEntities.ENTITY_303.spawn(serverLevel,null,null,spawnPos, MobSpawnType.EVENT,false,false);
-                    entity303.setSpawnStage(spawnStage);
-                    cooldown = SPAWN_COOLDOWN;
+                    BlockPos spawnPos = new BlockPos(attempt.x, height, attempt.y);
+
+                    boolean dark = Monster.isDarkEnoughToSpawn(serverLevel, spawnPos, serverLevel.random);
+                    if (dark) {
+
+                        Entity_303 entity303 = (Entity_303) ModEntities.ENTITY_303.spawn(serverLevel, null, null, spawnPos, MobSpawnType.EVENT, false, false);
+                        entity303.setSpawnStage(spawnStage);
+                        entity_303_cooldown = ENTITY_303_SPAWN_COOLDOWN;
+                    }
                 }
             }
             case two -> {
-                if (cooldown <= 0 && serverLevel.getGameTime() % SPAWN_ATTEMPT_FREQUENCY == 0 && !serverLevel.isDay()) {
+                if (entity_303_cooldown <= 0 && serverLevel.getGameTime() % ENTITY_303_SPAWN_ATTEMPT_FREQUENCY == 0 && !serverLevel.isDay()) {
                     RandomSource randomSource = serverLevel.random;
                     double angle = 360 * randomSource.nextDouble();
-                    double distance = MIN_SPAWN_DISTANCE_STAGE_TWO + (MAX_SPAWN_DISTANCE - MIN_SPAWN_DISTANCE_STAGE_TWO) * randomSource.nextDouble();
+                    double distance = ENTITY_303_MIN_SPAWN_DISTANCE_STAGE_TWO + (ENTITY_303_MAX_SPAWN_DISTANCE_STAGE_ONE - ENTITY_303_MIN_SPAWN_DISTANCE_STAGE_TWO) * randomSource.nextDouble();
                     Vec3 playerPos = player.position();
-                    Vec2 attempt = addPolar(playerPos,distance,angle);
+                    Vec2 attempt = addPolar(playerPos, distance, angle);
                     int height = serverLevel.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, (int) attempt.x, (int) attempt.y);
-                    BlockPos spawnPos = new BlockPos(attempt.x,height,attempt.y);
-                    Entity_303 entity303 = (Entity_303) ModEntities.ENTITY_303.spawn(serverLevel,null,null,spawnPos, MobSpawnType.EVENT,false,false);
-                    entity303.setSpawnStage(spawnStage);
+                    BlockPos spawnPos = new BlockPos(attempt.x, height, attempt.y);
 
-                    cooldown = SPAWN_COOLDOWN;
+                    boolean dark = Monster.isDarkEnoughToSpawn(serverLevel, spawnPos, serverLevel.random);
+
+                    if (dark) {
+
+                        Entity_303 entity303 = (Entity_303) ModEntities.ENTITY_303.spawn(serverLevel, null, null, spawnPos, MobSpawnType.EVENT, false, false);
+                        entity303.setSpawnStage(spawnStage);
+
+                        entity_303_cooldown = ENTITY_303_SPAWN_COOLDOWN;
+                    }
                 }
             }
             case three -> {
-                if (cooldown <= 0 && serverLevel.getGameTime() % SPAWN_ATTEMPT_FREQUENCY == 0 && !serverLevel.isDay()) {
+                if (entity_303_cooldown <= 0 && serverLevel.getGameTime() % ENTITY_303_SPAWN_ATTEMPT_FREQUENCY == 0 && !serverLevel.isDay()) {
                     RandomSource randomSource = serverLevel.random;
                     double angle = 360 * randomSource.nextDouble();
-                    double distance = MIN_SPAWN_DISTANCE + (MAX_SPAWN_DISTANCE - MIN_SPAWN_DISTANCE) * randomSource.nextDouble();
+                    double distance = ENTITY_303_MIN_SPAWN_DISTANCE + (ENTITY_303_MAX_SPAWN_DISTANCE_STAGE_ONE - ENTITY_303_MIN_SPAWN_DISTANCE) * randomSource.nextDouble();
                     Vec3 playerPos = player.position();
-                    Vec2 attempt = addPolar(playerPos,distance,angle);
+                    Vec2 attempt = addPolar(playerPos, distance, angle);
                     int height = serverLevel.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, (int) attempt.x, (int) attempt.y);
-                    BlockPos spawnPos = new BlockPos(attempt.x,height,attempt.y);
-                    Entity_303 entity303 = (Entity_303) ModEntities.ENTITY_303.spawn(serverLevel,null,null,spawnPos, MobSpawnType.EVENT,false,false);
+                    BlockPos spawnPos = new BlockPos(attempt.x, height, attempt.y);
+                    Entity_303 entity303 = (Entity_303) ModEntities.ENTITY_303.spawn(serverLevel, null, null, spawnPos, MobSpawnType.EVENT, false, false);
                     entity303.setSpawnStage(spawnStage);
 
-                    cooldown = SPAWN_COOLDOWN;
+                    entity_303_cooldown = ENTITY_303_SPAWN_COOLDOWN / 2;
                 }
             }
         }
-
-
     }
+
+    public static void tickNullSpawn(ServerPlayer player) {
+        ServerLevel serverLevel = player.getLevel();
+        if (null_cooldown > 0) {
+            null_cooldown--;
+        }
+
+        if (null_cooldown <= 0 && serverLevel.getGameTime() % NULL_SPAWN_ATTEMPT_FREQUENCY == 0 && !serverLevel.isDay()) {
+            RandomSource randomSource = serverLevel.random;
+            double angle = 360 * randomSource.nextDouble();
+            double distance = NULL_MIN_SPAWN_DISTANCE + (NULL_MAX_SPAWN_DISTANCE - NULL_MIN_SPAWN_DISTANCE) * randomSource.nextDouble();
+            Vec3 playerPos = player.position();
+            Vec2 attempt = addPolar(playerPos, distance, angle);
+            int height = serverLevel.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, (int) attempt.x, (int) attempt.y);
+            BlockPos spawnPos = new BlockPos(attempt.x, height, attempt.y);
+
+                Null aNull = (Null) ModEntities.NULL.spawn(serverLevel, null, null, spawnPos, MobSpawnType.EVENT, false, false);
+                null_cooldown = NULL_SPAWN_COOLDOWN;
+        }
+    }
+
 
     //x = r cos θ , y = r sin θ
     public static Vec2 addPolar(Vec3 vec3, double radius, double angle) {
-        double x = radius * Math.cos(angle * Math.PI/180);
-        double z = radius * Math.sin(angle * Math.PI/180);
+        double x = radius * Math.cos(angle * Math.PI / 180);
+        double z = radius * Math.sin(angle * Math.PI / 180);
 
         return new Vec2((float) (x + vec3.x), (float) (z + vec3.z));
     }

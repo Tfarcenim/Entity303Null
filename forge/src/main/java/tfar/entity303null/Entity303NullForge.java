@@ -14,6 +14,7 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.RegisterEvent;
 import tfar.entity303null.client.Entity303NullClientForge;
 import tfar.entity303null.entity.Entity_303;
+import tfar.entity303null.entity.Null;
 import tfar.entity303null.init.ModEntities;
 
 @Mod(Entity303Null.MOD_ID)
@@ -48,10 +49,12 @@ public class Entity303NullForge {
 
     private void register(RegisterEvent event) {
         event.register(Registry.ENTITY_TYPE_REGISTRY,new ResourceLocation(Entity303Null.MOD_ID,"entity_303"),() -> ModEntities.ENTITY_303);
+        event.register(Registry.ENTITY_TYPE_REGISTRY,new ResourceLocation(Entity303Null.MOD_ID,"null"), () -> ModEntities.NULL);
     }
 
     private void attributes(EntityAttributeCreationEvent event) {
         event.put(ModEntities.ENTITY_303, Entity_303.createAttributes().build());
+        event.put(ModEntities.NULL, Null.createAttributes().build());
     }
 
 }

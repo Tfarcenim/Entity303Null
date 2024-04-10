@@ -12,28 +12,24 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.layers.*;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.world.entity.player.PlayerModelPart;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.scores.Objective;
-import net.minecraft.world.scores.Score;
-import net.minecraft.world.scores.Scoreboard;
-import tfar.entity303null.client.layers.Entity_303EyesLayer;
-import tfar.entity303null.entity.Entity_303;
+import tfar.entity303null.client.layers.GenericEyesLayer;
 
-import java.util.Objects;
+public class SimplePlayerRenderer<T extends LivingEntity> extends LivingEntityRenderer<T, PlayerModel<T>> {
+    private final ResourceLocation texture;
 
-public class Entity_303Renderer extends LivingEntityRenderer<Entity_303, PlayerModel<Entity_303>> {
-    public Entity_303Renderer(EntityRendererProvider.Context context, boolean slim) {
+    public SimplePlayerRenderer(EntityRendererProvider.Context context, boolean slim, ResourceLocation texture) {
         super(context, new PlayerModel<>(context.bakeLayer(slim ? ModelLayers.PLAYER_SLIM : ModelLayers.PLAYER), slim), 0.5F);
+        this.texture = texture;
         this.addLayer(new HumanoidArmorLayer<>(this, new HumanoidModel<>(context.bakeLayer(slim ? ModelLayers.PLAYER_SLIM_INNER_ARMOR : ModelLayers.PLAYER_INNER_ARMOR)), new HumanoidModel(context.bakeLayer(slim ? ModelLayers.PLAYER_SLIM_OUTER_ARMOR : ModelLayers.PLAYER_OUTER_ARMOR))));
         this.addLayer(new ItemInHandLayer<>(this, context.getItemInHandRenderer()));
         this.addLayer(new ArrowLayer<>(context, this));
@@ -44,22 +40,22 @@ public class Entity_303Renderer extends LivingEntityRenderer<Entity_303, PlayerM
         //this.addLayer(new ParrotOnShoulderLayer<>(this, context.getModelSet()));
         this.addLayer(new SpinAttackEffectLayer<>(this, context.getModelSet()));
         this.addLayer(new BeeStingerLayer<>(this));
-        addLayer(new Entity_303EyesLayer<>(this));
+        addLayer(new GenericEyesLayer<>(this,texture));
     }
 
     @Override
-    public void render(Entity_303 $$0, float $$1, float $$2, PoseStack $$3, MultiBufferSource $$4, int $$5) {
+    public void render(T $$0, float $$1, float $$2, PoseStack $$3, MultiBufferSource $$4, int $$5) {
         this.setModelProperties($$0);
         super.render($$0, $$1, $$2, $$3, $$4, $$5);
     }
 
     @Override
-    public Vec3 getRenderOffset(Entity_303 $$0, float $$1) {
+    public Vec3 getRenderOffset(T $$0, float $$1) {
         return $$0.isCrouching() ? new Vec3(0.0, -0.125, 0.0) : super.getRenderOffset($$0, $$1);
     }
 
-    private void setModelProperties(Entity_303 entity_303) {
-        PlayerModel<Entity_303> model1 = this.getModel();
+    private void setModelProperties(T entity_303) {
+        PlayerModel<T> model1 = this.getModel();
         if (entity_303.isSpectator()) {
             model1.setAllVisible(false);
             model1.head.visible = true;
@@ -90,7 +86,7 @@ public class Entity_303Renderer extends LivingEntityRenderer<Entity_303, PlayerM
 
     }
 
-    private static HumanoidModel.ArmPose getArmPose(Entity_303 entity_303, InteractionHand $$1) {
+    private static HumanoidModel.ArmPose getArmPose(LivingEntity entity_303, InteractionHand $$1) {
         ItemStack $$2 = entity_303.getItemInHand($$1);
         if ($$2.isEmpty()) {
             return HumanoidModel.ArmPose.EMPTY;
@@ -129,39 +125,39 @@ public class Entity_303Renderer extends LivingEntityRenderer<Entity_303, PlayerM
     }
 
     @Override
-    public ResourceLocation getTextureLocation(Entity_303 entity_303) {
-        return entity_303.getSkinTextureLocation();
+    public ResourceLocation getTextureLocation(T entity_303) {
+        return texture;
     }
 
     @Override
-    protected void scale(Entity_303 $$0, PoseStack $$1, float $$2) {
+    protected void scale(T $$0, PoseStack $$1, float $$2) {
         float $$3 = 0.9375F;
         $$1.scale(0.9375F, 0.9375F, 0.9375F);
     }
 
-    public void renderRightHand(PoseStack $$0, MultiBufferSource $$1, int $$2, Entity_303 $$3) {
+    public void renderRightHand(PoseStack $$0, MultiBufferSource $$1, int $$2, T $$3) {
         this.renderHand($$0, $$1, $$2, $$3, this.model.rightArm, this.model.rightSleeve);
     }
 
-    public void renderLeftHand(PoseStack $$0, MultiBufferSource $$1, int $$2, Entity_303 $$3) {
+    public void renderLeftHand(PoseStack $$0, MultiBufferSource $$1, int $$2, T $$3) {
         this.renderHand($$0, $$1, $$2, $$3, this.model.leftArm, this.model.leftSleeve);
     }
 
-    private void renderHand(PoseStack $$0, MultiBufferSource $$1, int $$2, Entity_303 entity_303, ModelPart $$4, ModelPart $$5) {
-        PlayerModel<Entity_303> model1 = this.getModel();
+    private void renderHand(PoseStack $$0, MultiBufferSource $$1, int $$2, T entity_303, ModelPart $$4, ModelPart $$5) {
+        PlayerModel<T> model1 = this.getModel();
         this.setModelProperties(entity_303);
         model1.attackTime = 0.0F;
         model1.crouching = false;
         model1.swimAmount = 0.0F;
         model1.setupAnim(entity_303, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
         $$4.xRot = 0.0F;
-        $$4.render($$0, $$1.getBuffer(RenderType.entitySolid(entity_303.getSkinTextureLocation())), $$2, OverlayTexture.NO_OVERLAY);
+        $$4.render($$0, $$1.getBuffer(RenderType.entitySolid(getTextureLocation(entity_303))), $$2, OverlayTexture.NO_OVERLAY);
         $$5.xRot = 0.0F;
-        $$5.render($$0, $$1.getBuffer(RenderType.entityTranslucent(entity_303.getSkinTextureLocation())), $$2, OverlayTexture.NO_OVERLAY);
+        $$5.render($$0, $$1.getBuffer(RenderType.entityTranslucent(getTextureLocation(entity_303))), $$2, OverlayTexture.NO_OVERLAY);
     }
 
     @Override
-    protected void setupRotations(Entity_303 $$0, PoseStack $$1, float $$2, float $$3, float $$4) {
+    protected void setupRotations(T $$0, PoseStack $$1, float $$2, float $$3, float $$4) {
         float $$5 = $$0.getSwimAmount($$4);
         float $$14;
         float $$7;

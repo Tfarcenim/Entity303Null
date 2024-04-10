@@ -89,4 +89,10 @@ public class LookforPlayerGoal<T extends PathfinderMob & CanLookAt> extends Near
             super.tick();
         }
     }
+
+    public LivingEntity getTarget() {
+        return target;
+    }
+
+
 }

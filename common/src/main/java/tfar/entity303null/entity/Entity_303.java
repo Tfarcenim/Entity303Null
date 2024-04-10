@@ -98,18 +98,20 @@ public class Entity_303 extends PathfinderMob implements CanLookAt {
     }
 
     void despawn() {
-        spawnStage = SpawnStage.two;
         if (!level.isClientSide) {
             switch (spawnStage) {
 
                 case one -> {
                 }
                 case two -> {
-                    if (random.nextInt(1) == 0) {
+                    if (random.nextInt(10) == 0) {
                         placeSign();
                     }
                 }
                 case three -> {
+                    if (random.nextInt(5) == 0) {
+                        placeSign();
+                    }
                 }
             }
             discard();
