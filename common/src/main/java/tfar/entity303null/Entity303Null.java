@@ -15,6 +15,7 @@ import tfar.entity303null.entity.Entity_303;
 import tfar.entity303null.entity.Null;
 import tfar.entity303null.entity.SpawnStage;
 import tfar.entity303null.init.ModEntities;
+import tfar.entity303null.platform.Services;
 
 // This class is part of the common project meaning it is shared between all supported loaders. Code written here can only
 // import and access the vanilla codebase, libraries used by vanilla, and optionally third party libraries that provide
@@ -26,6 +27,7 @@ public class Entity303Null {
     public static final String MOD_NAME = "Entity303Null";
     public static final Logger LOG = LoggerFactory.getLogger(MOD_NAME);
 
+    public static final boolean DEV = Services.PLATFORM.isDevelopmentEnvironment();
     public static void init() {
 
     }
@@ -34,7 +36,6 @@ public class Entity303Null {
     static int entity_303_cooldown;
     public static int ENTITY_303_LIFESPAN = 1200;
     public static int ENTITY_303_SPAWN_ATTEMPT_FREQUENCY = 20;
-    public static int ENTITY_303_SPAWN_COOLDOWN = 1200;
     public static int ENTITY_303_MIN_SPAWN_DISTANCE = 64;
     public static int ENTITY_303_MIN_SPAWN_DISTANCE_STAGE_TWO = 48;
     public static int ENTITY_303_MAX_SPAWN_DISTANCE_STAGE_ONE = 96;
@@ -43,10 +44,8 @@ public class Entity303Null {
 
     public static int NULL_LIFESPAN = 1200;
     public static int NULL_SPAWN_ATTEMPT_FREQUENCY = 20;
-    public static int NULL_SPAWN_COOLDOWN = 6000;
     public static int NULL_MIN_SPAWN_DISTANCE = 64;
     public static int NULL_MAX_SPAWN_DISTANCE = 96;
-
     public static int NULL_MIN_PLAYER_DISTANCE = 32;
 
     public static void playerTick(ServerPlayer player) {
@@ -59,6 +58,13 @@ public class Entity303Null {
         if (entity_303_cooldown > 0) {
             entity_303_cooldown--;
         }
+
+        long days = serverLevel.getGameTime() / 24000;
+
+        double cooldownModifier = 1d / Math.min(days+1,8);
+
+        int modifiedCooldown = (int) (Services.PLATFORM.getentity_303SpawnCooldown() * cooldownModifier);
+
 
         SpawnStage spawnStage = SpawnStage.getStage(serverLevel);
 
@@ -78,7 +84,7 @@ public class Entity303Null {
 
                         Entity_303 entity303 = (Entity_303) ModEntities.ENTITY_303.spawn(serverLevel, null, null, spawnPos, MobSpawnType.EVENT, false, false);
                         entity303.setSpawnStage(spawnStage);
-                        entity_303_cooldown = ENTITY_303_SPAWN_COOLDOWN;
+                        entity_303_cooldown = modifiedCooldown;
                     }
                 }
             }
@@ -99,7 +105,7 @@ public class Entity303Null {
                         Entity_303 entity303 = (Entity_303) ModEntities.ENTITY_303.spawn(serverLevel, null, null, spawnPos, MobSpawnType.EVENT, false, false);
                         entity303.setSpawnStage(spawnStage);
 
-                        entity_303_cooldown = ENTITY_303_SPAWN_COOLDOWN;
+                        entity_303_cooldown = modifiedCooldown;
                     }
                 }
             }
@@ -115,7 +121,7 @@ public class Entity303Null {
                     Entity_303 entity303 = (Entity_303) ModEntities.ENTITY_303.spawn(serverLevel, null, null, spawnPos, MobSpawnType.EVENT, false, false);
                     entity303.setSpawnStage(spawnStage);
 
-                    entity_303_cooldown = ENTITY_303_SPAWN_COOLDOWN / 2;
+                    entity_303_cooldown = modifiedCooldown / 2;
                 }
             }
         }
@@ -127,6 +133,14 @@ public class Entity303Null {
             null_cooldown--;
         }
 
+        long days = serverLevel.getGameTime() / 24000;
+
+        double cooldownModifier = 1d / Math.min(days+1,8);
+
+        int modifiedCooldown = (int) (Services.PLATFORM.getnullSpawnCooldown() * cooldownModifier);
+
+
+
         if (null_cooldown <= 0 && serverLevel.getGameTime() % NULL_SPAWN_ATTEMPT_FREQUENCY == 0 && !serverLevel.isDay()) {
             RandomSource randomSource = serverLevel.random;
             double angle = 360 * randomSource.nextDouble();
@@ -137,7 +151,7 @@ public class Entity303Null {
             BlockPos spawnPos = new BlockPos(attempt.x, height, attempt.y);
 
                 Null aNull = (Null) ModEntities.NULL.spawn(serverLevel, null, null, spawnPos, MobSpawnType.EVENT, false, false);
-                null_cooldown = NULL_SPAWN_COOLDOWN;
+                null_cooldown = modifiedCooldown;
         }
     }
 

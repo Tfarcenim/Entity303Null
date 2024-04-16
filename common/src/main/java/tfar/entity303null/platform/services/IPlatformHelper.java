@@ -33,4 +33,10 @@ public interface IPlatformHelper {
 
         return isDevelopmentEnvironment() ? "development" : "production";
     }
+
+
+    int getentity_303SpawnCooldown();
+
+    int getnullSpawnCooldown();
+
 }

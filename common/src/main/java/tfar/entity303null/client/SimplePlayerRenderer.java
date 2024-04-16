@@ -50,6 +50,11 @@ public class SimplePlayerRenderer<T extends LivingEntity> extends LivingEntityRe
     }
 
     @Override
+    protected boolean shouldShowName(T entity) {
+        return super.shouldShowName(entity) && (entity.shouldShowName() || entity.hasCustomName() && entity == this.entityRenderDispatcher.crosshairPickEntity);
+    }
+
+    @Override
     public Vec3 getRenderOffset(T $$0, float $$1) {
         return $$0.isCrouching() ? new Vec3(0.0, -0.125, 0.0) : super.getRenderOffset($$0, $$1);
     }

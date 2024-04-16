@@ -1,14 +1,11 @@
 package tfar.entity303null.entity;
 
-import net.minecraft.client.model.PlayerModel;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
@@ -20,10 +17,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import tfar.entity303null.Entity303Null;
 import tfar.entity303null.entity.goals.LookAtPlayerGoal;
+import tfar.entity303null.entity.goals.BeingLookedAtGoal;
 import tfar.entity303null.entity.goals.LookforPlayerGoal;
 
 import java.util.List;
@@ -33,7 +33,7 @@ public class Null extends PathfinderMob implements CanLookAt {
         super($$0, $$1);
     }
 
-    private LookforPlayerGoal<Null> lookforPlayerGoal;
+    private BeingLookedAtGoal<Null> beingLookedAtGoal;
 
     boolean staredAt;
 
@@ -51,8 +51,9 @@ public class Null extends PathfinderMob implements CanLookAt {
     protected void registerGoals() {
         super.registerGoals();
         this.goalSelector.addGoal(1, new LookAtPlayerGoal<>(this));
-        lookforPlayerGoal = new LookforPlayerGoal<>(this, e -> true);
-        this.targetSelector.addGoal(1,lookforPlayerGoal);
+        beingLookedAtGoal = new BeingLookedAtGoal<>(this, e -> true);
+        this.targetSelector.addGoal(1, beingLookedAtGoal);
+        this.targetSelector.addGoal(2, new LookforPlayerGoal<>(this, e -> true));
     }
 
     @Override
@@ -78,7 +79,7 @@ public class Null extends PathfinderMob implements CanLookAt {
             } else if (staredAt) {
                 ticksLookedAt++;
                 if (ticksLookedAt >= 6) {
-                    LivingEntity target = lookforPlayerGoal.getTarget();
+                    LivingEntity target = beingLookedAtGoal.getTarget();
                     if (target != null) {
                         target.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 200));
                     }
@@ -104,9 +105,10 @@ public class Null extends PathfinderMob implements CanLookAt {
     );
 
     void placeSign() {
-        BlockPos pos = blockPosition();
-        if (!level.isOutsideBuildHeight(pos)) {
-            level.setBlock(pos, Blocks.DARK_OAK_SIGN.defaultBlockState(), 3);
+        BlockState state = Blocks.DARK_OAK_SIGN.defaultBlockState();
+        BlockPos pos = findSafeSignPos(state);
+        if (pos != null && !level.isOutsideBuildHeight(pos)) {
+            level.setBlock(pos, state, 3);
             String[] message = messages.get(random.nextInt(messages.size()));
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof SignBlockEntity signBlockEntity) {
@@ -116,6 +118,20 @@ public class Null extends PathfinderMob implements CanLookAt {
                 signBlockEntity.setChanged();
             }
         }
+    }
+
+    BlockPos findSafeSignPos(BlockState state) {
+        BlockPos pos = blockPosition();
+        if (state.canSurvive(level,pos.below())) {
+            return pos;
+        }
+
+        pos = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING,pos);
+
+        if (state.canSurvive(level,pos.below())) {
+            return pos;
+        }
+        return null;
     }
 
     //always will leave dark oak signs with the word "Null"

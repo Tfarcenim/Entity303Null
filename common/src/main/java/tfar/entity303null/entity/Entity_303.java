@@ -4,7 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
@@ -16,13 +15,15 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import tfar.entity303null.Entity303Null;
 import tfar.entity303null.entity.goals.LookAtPlayerGoal;
+import tfar.entity303null.entity.goals.BeingLookedAtGoal;
 import tfar.entity303null.entity.goals.LookforPlayerGoal;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Entity_303 extends PathfinderMob implements CanLookAt {
@@ -71,7 +72,8 @@ public class Entity_303 extends PathfinderMob implements CanLookAt {
     protected void registerGoals() {
         super.registerGoals();
         this.goalSelector.addGoal(1, new LookAtPlayerGoal<>(this));
-        this.targetSelector.addGoal(1, new LookforPlayerGoal<>(this, e -> true));
+        this.targetSelector.addGoal(1, new BeingLookedAtGoal<>(this, e -> true));
+        this.targetSelector.addGoal(2, new LookforPlayerGoal<>(this, e -> true));
     }
 
     @Override
@@ -96,6 +98,21 @@ public class Entity_303 extends PathfinderMob implements CanLookAt {
             despawn();
         }
     }
+
+    BlockPos findSafeSignPos(BlockState state) {
+        BlockPos pos = blockPosition();
+        if (state.canSurvive(level,pos.below())) {
+            return pos;
+        }
+
+        pos = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING,pos);
+
+        if (state.canSurvive(level,pos.below())) {
+            return pos;
+        }
+        return null;
+    }
+
 
     void despawn() {
         if (!level.isClientSide) {
@@ -128,9 +145,10 @@ public class Entity_303 extends PathfinderMob implements CanLookAt {
     );
 
     void placeSign() {
-        BlockPos pos = blockPosition();
-        if (!level.isOutsideBuildHeight(pos)) {
-            level.setBlock(pos, Blocks.BIRCH_SIGN.defaultBlockState(), 3);
+        BlockState state = Blocks.BIRCH_SIGN.defaultBlockState();
+        BlockPos pos = findSafeSignPos(state);
+        if (pos != null && !level.isOutsideBuildHeight(pos)) {
+            level.setBlock(pos, state, 3);
             String[] message = messages.get(random.nextInt(messages.size()));
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof SignBlockEntity signBlockEntity) {
@@ -161,7 +179,4 @@ public class Entity_303 extends PathfinderMob implements CanLookAt {
         spawnStage = SpawnStage.values()[tag.getInt("stage")];
     }
 
-    public ResourceLocation getSkinTextureLocation() {
-        return new ResourceLocation(Entity303Null.MOD_ID, "textures/entity/entity_303.png");
-    }
 }

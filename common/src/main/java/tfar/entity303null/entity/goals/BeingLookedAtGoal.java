@@ -10,7 +10,7 @@ import tfar.entity303null.entity.CanLookAt;
 import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
-public class LookforPlayerGoal<T extends PathfinderMob & CanLookAt> extends NearestAttackableTargetGoal<Player> {
+public class BeingLookedAtGoal<T extends PathfinderMob & CanLookAt> extends NearestAttackableTargetGoal<Player> {
     private final T pathfinderMob;
     /** The player */
     @Nullable
@@ -19,10 +19,10 @@ public class LookforPlayerGoal<T extends PathfinderMob & CanLookAt> extends Near
     private final TargetingConditions startAggroTargetConditions;
     private final TargetingConditions continueAggroTargetConditions = TargetingConditions.forCombat().ignoreLineOfSight();
 
-    public LookforPlayerGoal(T pathfinderMob, @Nullable Predicate<LivingEntity> pSelectionPredicate) {
+    public BeingLookedAtGoal(T pathfinderMob, @Nullable Predicate<LivingEntity> pSelectionPredicate) {
         super(pathfinderMob, Player.class, 10, false, false, pSelectionPredicate);
         this.pathfinderMob = pathfinderMob;
-        this.startAggroTargetConditions = TargetingConditions.forCombat().range(this.getFollowDistance()).selector(living -> true);
+        this.startAggroTargetConditions = TargetingConditions.forCombat().range(this.getFollowDistance()).selector((living) -> pathfinderMob.isLookingAtMe((Player)living));
     }
 
     /**
@@ -41,6 +41,7 @@ public class LookforPlayerGoal<T extends PathfinderMob & CanLookAt> extends Near
     @Override
     public void start() {
         this.aggroTime = this.adjustedTickDelay(5);
+        this.pathfinderMob.setStaredAt(true);
     }
 
     /**
@@ -58,7 +59,12 @@ public class LookforPlayerGoal<T extends PathfinderMob & CanLookAt> extends Near
     @Override
     public boolean canContinueToUse() {
         if (this.pendingTarget != null) {
-            return false;
+            if (!this.pathfinderMob.isLookingAtMe(this.pendingTarget)) {
+                return false;
+            } else {
+                this.pathfinderMob.lookAt(this.pendingTarget, 10.0F, 10.0F);
+                return true;
+            }
         } else {
             return this.target != null && this.continueAggroTargetConditions.test(this.pathfinderMob, this.target) || super.canContinueToUse();
         }
@@ -74,9 +80,11 @@ public class LookforPlayerGoal<T extends PathfinderMob & CanLookAt> extends Near
         }
 
         if (this.pendingTarget != null) {
-            this.target = this.pendingTarget;
-            this.pendingTarget = null;
-            super.start();
+            if (--this.aggroTime <= 0) {
+                this.target = this.pendingTarget;
+                this.pendingTarget = null;
+                super.start();
+            }
         } else {
             super.tick();
         }

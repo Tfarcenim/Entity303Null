@@ -13,8 +13,6 @@ public class LookAtPlayerGoal<T extends PathfinderMob & CanLookAt> extends Goal 
       private final T mob;
       @Nullable
       private LivingEntity target;
-      int ticksLookedAt;
-
       public LookAtPlayerGoal(T mob) {
          this.mob = mob;
          this.setFlags(EnumSet.of(Goal.Flag.JUMP, Goal.Flag.MOVE));
@@ -29,7 +27,7 @@ public class LookAtPlayerGoal<T extends PathfinderMob & CanLookAt> extends Goal 
          this.target = this.mob.getTarget();
           if (this.target instanceof Player) {
             // double d0 = this.target.distanceToSqr(this.mob);
-             return this.mob.isLookingAtMe((Player) this.target);
+             return true;//this.mob.isLookingAtMe((Player) this.target);
           } else {
              return false;
           }
@@ -49,6 +47,5 @@ public class LookAtPlayerGoal<T extends PathfinderMob & CanLookAt> extends Goal 
       @Override
       public void tick() {
          this.mob.getLookControl().setLookAt(this.target.getX(), this.target.getEyeY(), this.target.getZ());
-         ticksLookedAt++;
       }
    }
