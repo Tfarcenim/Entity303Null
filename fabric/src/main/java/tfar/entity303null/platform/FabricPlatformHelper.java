@@ -21,4 +21,14 @@ public class FabricPlatformHelper implements IPlatformHelper {
 
         return FabricLoader.getInstance().isDevelopmentEnvironment();
     }
+
+    @Override
+    public int getentity_303SpawnCooldown() {
+        return 0;
+    }
+
+    @Override
+    public int getnullSpawnCooldown() {
+        return 0;
+    }
 }
